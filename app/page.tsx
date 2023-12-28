@@ -1,56 +1,69 @@
 'use client'
-import { useEffect, useRef, MouseEvent } from "react"
+import { useEffect, useRef, MouseEvent, useState } from "react"
 
 export default function Home() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
+  const canvasRef = useRef(null);
+  const [coord, setcoord] = useState({
+    x:0,
+    y:0
+  })
 
-  // Create a variable to hold the canvas 2D rendering context
-  let ctx: CanvasRenderingContext2D | null;
-
-  // This useEffect runs after the component is mounted
+  const [draw, setdraw] = useState(false)
   useEffect(() => {
-    // Get the canvas element using the ref
-    const canvas = canvasRef.current;
-
-    // Check if the canvas exists
-    if (canvas) {
-      // Get the 2D rendering context of the canvas
-      ctx = canvas.getContext('2d');
-
-      // Check if the rendering context exists
-      if (ctx) {
-        // Set initial stroke style (color) and line width for drawing
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 1;
-      }
-    }
+    setCanvasReady(true); // Set canvasReady to true once the component mounts
   }, []);
 
-  // This function starts drawing when the mouse button is pressed down
-  const startDrawing = (e: MouseEvent<HTMLCanvasElement>) => {
-    // Check if the rendering context exists
-    if (ctx) {
-      // Begin a new drawing path
-      ctx.beginPath();
+  useEffect(() => {
+    if (canvasReady) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      
+      // Use ctx to draw on the canvas
+      // For example:
+      // ctx.fillStyle = 'blue';
+      // ctx.fillRect(10, 10, 100, 100);
+      ctx.canvas.width = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
 
-      // Move the "pen" to the starting position on the canvas
-      ctx.moveTo(e.clientX, e.clientY);
+      // Cleanup or other operations
     }
-  };
+  }, [canvasReady]);
 
-  // This function continues drawing as the mouse moves
-  const draw = (e: MouseEvent<HTMLCanvasElement>) => {
-    // Check if the rendering context exists
-    if (ctx) {
-      // Draw a line to the current mouse position
-      ctx.lineTo(e.clientX, e.clientY);
-
-      // Render the line on the canvas
+  
+  const handleStart=(e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>)=>{
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      setdraw(true);
+      ctx.beginPath();
+      ctx.moveTo(offsetX, offsetY);
+    
+  }    
+  
+  const startDraw=(e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>)=>{
+    if(draw){
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+  
+      ctx.lineTo(offsetX, offsetY);
       ctx.stroke();
     }
-  };
+  }
+  
+  const handleStop =(e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>)=>{
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.closePath()
+    setdraw(false)
+  }
 
-  return (
+  return ( 
     <div className='w-100 h-auto bg-white text-black'>
        <div className='flex'>
           <div className='m-5'>
@@ -62,14 +75,12 @@ export default function Home() {
        </div>
 
        <div className="flex justify-center">
-        <canvas className='border-slate-600 border-2'
-          ref={canvasRef}
-          width={800}
-          height={600}
-          onMouseDown={startDrawing} // Start drawing when mouse button is pressed down
-          onMouseMove={draw} // Draw as the mouse moves
-          onMouseUp={() => (ctx ? ctx.closePath() : null)} // Close the drawing path when mouse button is released
-          onMouseOut={() => (ctx ? ctx.closePath() : null)} 
+        <canvas 
+          className="w-screen h-screen bg-slate-200"   
+          ref={canvasRef} 
+          onMouseDown={(e) => handleStart(e)}
+          onMouseMove={(e) => startDraw(e)}
+          onMouseUp={(e) => handleStop(e)}    
         ></canvas>
        </div>
     </div>
