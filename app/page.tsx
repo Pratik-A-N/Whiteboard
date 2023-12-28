@@ -10,6 +10,8 @@ export default function Home() {
   })
 
   const [draw, setdraw] = useState(false)
+  const [pen, setpen] = useState(false)
+  const [erase, seterase] = useState(false)
   useEffect(() => {
     setCanvasReady(true); // Set canvasReady to true once the component mounts
   }, []);
@@ -30,8 +32,13 @@ export default function Home() {
     }
   }, [canvasReady]);
 
-  
+  const selectPen =()=>{
+    setpen(true)
+    seterase(false);
+  }
+
   const handleStart=(e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>)=>{
+    if(pen){
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       const rect = canvas.getBoundingClientRect();
@@ -40,37 +47,58 @@ export default function Home() {
       setdraw(true);
       ctx.beginPath();
       ctx.moveTo(offsetX, offsetY);
+    }
     
   }    
   
   const startDraw=(e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>)=>{
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
     if(draw){
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      const rect = canvas.getBoundingClientRect();
-      const offsetX = e.clientX - rect.left;
-      const offsetY = e.clientY - rect.top;
-  
+      ctx.lineWidth = 5;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.lineTo(offsetX, offsetY);
+      ctx.stroke();
+    }
+
+    if(erase){
+      ctx.beginPath();
+      ctx.lineWidth = 35;
+      ctx.lineCap = 'round';
+      ctx.globalCompositeOperation = 'destination-out'; // Set the eraser mode
+      ctx.moveTo(offsetX, offsetY);
+      
       ctx.lineTo(offsetX, offsetY);
       ctx.stroke();
     }
   }
   
   const handleStop =(e: MouseEvent<HTMLCanvasElement, globalThis.MouseEvent>)=>{
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.closePath()
-    setdraw(false)
+    if(pen){
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      ctx.closePath()
+      setdraw(false)
+    }
   }
+
+  const eraseStart =()=>{
+    setpen(false);
+    seterase(true);
+  }
+  
 
   return ( 
     <div className='w-100 h-auto bg-white text-black'>
        <div className='flex'>
           <div className='m-5'>
-            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded'>Pencil</button>
+            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded' onClick={selectPen}>Pencil</button>
           </div>
           <div className='m-5'>
-            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded'>Eraser</button>
+            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded' onClick={eraseStart}>Eraser</button>
           </div>
        </div>
 
