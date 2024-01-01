@@ -25,3 +25,16 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+.canvas-pen{
+  cursor: url(../Assests/pen.png), auto;
+}
+
+.cursor-eraser{
+  cursor: url(../Assests/eraser.png), auto;
+}
+
+.brd{
+  border-width: 5px;
+  border-color: rgb(79, 79, 104);
+}

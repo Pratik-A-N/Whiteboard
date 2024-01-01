@@ -1,13 +1,21 @@
 'use client'
 import { useEffect, useRef, MouseEvent, useState } from "react"
+import Image from "next/image";
+import Pencil from '../Assests/pen.png'
+import Eraser from '../Assests/eraser.png'
 
 export default function Home() {
   const [canvasReady, setCanvasReady] = useState(false);
   const canvasRef = useRef(null);
+  const [selectedColor, setselectedColor] = useState('black')
   const [coord, setcoord] = useState({
     x:0,
     y:0
   })
+  const [black, setblack] = useState(false)
+  const [blue, setblue] = useState(false)
+  const [green, setgreen] = useState(false)
+  const [red, setred] = useState(false)
 
   const [draw, setdraw] = useState(false)
   const [pen, setpen] = useState(false)
@@ -34,6 +42,7 @@ export default function Home() {
 
   const selectPen =()=>{
     setpen(true)
+    setblack(true);
     seterase(false);
   }
 
@@ -59,6 +68,7 @@ export default function Home() {
     const offsetY = e.clientY - rect.top;
     if(draw){
       ctx.lineWidth = 5;
+      ctx.strokeStyle = selectedColor;
       ctx.globalCompositeOperation = 'source-over';
       ctx.lineTo(offsetX, offsetY);
       ctx.stroke();
@@ -88,23 +98,95 @@ export default function Home() {
   const eraseStart =()=>{
     setpen(false);
     seterase(true);
+    setblack(false);
+    setblue(false);
+    setgreen(false);
+    setred(false);
+  }
+
+  const clearAll =()=>{
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  const getcursor =()=>{
+    if(!pen && !erase){
+      return ''
+    }
+    if(pen){
+      return 'canvas-pen'
+    }
+
+    if(erase){
+      return 'cursor-eraser'
+    }
   }
   
+  const selectColorStyle =(color: string)=>{
+    if(!erase){
+      setselectedColor(color)
+      if(color == "black"){
+        setblack(true)
+        setblue(false)
+        setgreen(false)
+        setred(false)
+      }
+      if(color == "blue"){
+        setblack(false)
+        setblue(true)
+        setgreen(false)
+        setred(false)
+      }
+      if(color == "green"){
+        setblack(false)
+        setblue(false)
+        setgreen(true)
+        setred(false)
+      }
+      if(color == "red"){
+        setblack(false)
+        setblue(false)
+        setgreen(false)
+        setred(true)
+      }
+
+    }
+  }
 
   return ( 
     <div className='w-100 h-auto bg-white text-black'>
        <div className='flex'>
           <div className='m-5'>
-            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded' onClick={selectPen}>Pencil</button>
+            <button className={`border-slate-600 border-2 p-2 rounded ${pen ? 'bg-slate-500 text-white' : ''}`} onClick={selectPen}> <Image
+             src={Pencil}
+             alt="Pencil"
+             width={20}
+             height={20}/> 
+            </button>
           </div>
           <div className='m-5'>
-            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded' onClick={eraseStart}>Eraser</button>
+            <button className={`border-slate-600 border-2 p-2 rounded ${erase ? 'bg-slate-500 text-white' : ''}`} onClick={eraseStart}><Image
+             src={Eraser}
+             alt="Eraser"
+             width={20}
+             height={20}/> 
+            </button>
+          </div>
+          <div className="flex m-5 items-center">
+            <button className={`bg-black mx-2 rounded-full ${black ? 'w-10 h-10 brd' : 'w-8 h-8'} `} onClick={() => selectColorStyle('black')}></button>
+            <button className={`bg-blue-500 mx-2 rounded-full ${blue ? 'w-10 h-10 brd' : 'w-8 h-8'} `} onClick={() => selectColorStyle('blue')}></button>
+            <button className={`bg-green-500 mx-2 rounded-full ${green ? 'w-10 h-10 brd' : 'w-8 h-8'} `} onClick={() => selectColorStyle('green')}></button>
+            <button className={`bg-red-500 mx-2 rounded-full ${red ? 'w-10 h-10 brd' : 'w-8 h-8'} `} onClick={() => selectColorStyle('red')}></button>
+          </div>
+          <div className="m-5">
+            <button className='border-slate-600 border-2 p-2 hover:bg-yellow-200 rounded' onClick={clearAll}>Reset</button>
           </div>
        </div>
 
        <div className="flex justify-center">
         <canvas 
-          className="w-screen h-screen bg-slate-200"   
+          className={`w-screen h-screen bg-slate-200 ${getcursor()}`}   
           ref={canvasRef} 
           onMouseDown={(e) => handleStart(e)}
           onMouseMove={(e) => startDraw(e)}
